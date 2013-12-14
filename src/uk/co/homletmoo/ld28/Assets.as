@@ -34,5 +34,14 @@ package uk.co.homletmoo.ld28
 		[Embed (source = "res/flashpunk.png")]
 		public static const FP_LOGO_RAW:Class;
 		public static const FP_LOGO:BitmapData = FP.getBitmap( FP_LOGO_RAW );
+		
+		// Tiles
+		[Embed (source = "res/guide.png")]
+		public static const TILE_NONE_RAW:Class;
+		public static const TILE_NONE:BitmapData = FP.getBitmap( TILE_NONE_RAW );
+		
+		[Embed (source = "res/tile_grass.png")]
+		public static const TILE_GRASS_RAW:Class;
+		public static const TILE_GRASS:BitmapData = FP.getBitmap( TILE_GRASS_RAW );
 	}
 }

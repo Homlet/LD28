@@ -29,7 +29,7 @@ package uk.co.homletmoo.ld28.world
 			
 			hmLogo = new Image( Assets.HM_LOGO );
 			hmLogo.scale = Display.SCALE * 2;
-			hmLogo.x = ( FP.width / 2 ) - ( hmLogo.scaledWidth / 2 );
+			hmLogo.x = ( FP.width  / 2 ) - ( hmLogo.scaledWidth  / 2 );
 			hmLogo.y = ( FP.height / 2 ) - ( hmLogo.scaledHeight / 2 );
 			hmLogo.alpha = 0;
 			

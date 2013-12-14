@@ -1,6 +1,7 @@
 package uk.co.homletmoo.ld28.world 
 {
 	import net.flashpunk.World;
+	import uk.co.homletmoo.ld28.entity.IsoMap;
 	
 	/**
 	 * ...
@@ -8,9 +9,13 @@ package uk.co.homletmoo.ld28.world
 	 */
 	public class LevelWorld extends World
 	{
-		public function LevelWorld() 
+		public var ground:IsoMap;
+		
+		
+		override public function begin():void
 		{
-			
-		}	
+			ground = new IsoMap( 4, 4 );
+			ground.x = 250;
+		}
 	}
 }

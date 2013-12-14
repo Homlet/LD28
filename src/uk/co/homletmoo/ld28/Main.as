@@ -46,8 +46,8 @@ package uk.co.homletmoo.ld28
 			pauseFader = new Bitmap( new BitmapData( Display.WIDTH, Display.HEIGHT, true, 0x88000000 ) );
 			addChild( pauseFader );
 			
-			FP.console.enable();
-			FP.console.toggleKey = Key.TAB;
+//			FP.console.enable();
+//			FP.console.toggleKey = Key.TAB;
 		}
 		
 		override public function init():void
