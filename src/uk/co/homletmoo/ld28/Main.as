@@ -11,7 +11,7 @@ package uk.co.homletmoo.ld28
 	import uk.co.homletmoo.ld28.world.LevelWorld;
 	import uk.co.homletmoo.ld28.world.SplashWorld;
 	
-	[SWF (width = "800", height = "600", backgroundColor = "#000000")]
+	[SWF (width = "800", height = "700", backgroundColor = "#000000")]
 	
 	/**
 	 * ...
@@ -31,23 +31,24 @@ package uk.co.homletmoo.ld28
 		public function Main():void
 		{
 			super(
-				Display.WIDTH,
-				Display.HEIGHT,
+				Display.W,
+				Display.H,
 				Display.FRAME_RATE,
 				Display.USE_FIXED_TIME
 			);
 			
 			quake = new Quake();
 			
-			FP.screen.color = 0xFF000000;
-			FP.screen.originX = Display.WIDTH / 2.0;
-			FP.screen.originY = Display.HEIGHT / 2.0;
+			FP.screen.color = 0xFF000000
 			
-			pauseFader = new Bitmap( new BitmapData( Display.WIDTH, Display.HEIGHT, true, 0x88000000 ) );
+			pauseFader = new Bitmap( new BitmapData( Display.HW, Display.HH, true, 0x88000000 ) );
 			addChild( pauseFader );
 			
-//			FP.console.enable();
-//			FP.console.toggleKey = Key.TAB;
+			if ( CONFIG::debug )
+			{
+				FP.console.enable();
+				FP.console.toggleKey = Key.TAB;
+			}
 		}
 		
 		override public function init():void
@@ -55,7 +56,7 @@ package uk.co.homletmoo.ld28
 			Sound.initialize();
 			Inputs.register();
 			
-			FP.world = new SplashWorld();
+			FP.world = new LevelWorld(); // TODO: splash.
 		}
 		
 		override public function update():void

@@ -6,8 +6,10 @@ package uk.co.homletmoo.ld28
 	 */
 	public class Display 
 	{
-		public static const WIDTH:uint = 800;
-		public static const HEIGHT:uint = 600;
+		public static const W:int  = 800;
+		public static const H:int  = 700;
+		public static const HW:int = W / 2.0;
+		public static const HH:int = H / 2.0;
 		
 		public static const SCALE:uint = 4;
 		
