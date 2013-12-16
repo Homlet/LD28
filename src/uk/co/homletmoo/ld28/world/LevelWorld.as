@@ -10,6 +10,7 @@ package uk.co.homletmoo.ld28.world
 	import net.flashpunk.FP;
 	import net.flashpunk.graphics.Graphiclist;
 	import net.flashpunk.graphics.Image;
+	import net.flashpunk.graphics.Text;
 	import net.flashpunk.utils.Input;
 	import net.flashpunk.World;
 	import uk.co.homletmoo.ld28.Assets;
@@ -18,6 +19,7 @@ package uk.co.homletmoo.ld28.world
 	import uk.co.homletmoo.ld28.level.Tile;
 	import uk.co.homletmoo.ld28.player.Seed;
 	import uk.co.homletmoo.ld28.player.Player;
+	import uk.co.homletmoo.ld28.Sound;
 	
 	/**
 	 * ...
@@ -40,14 +42,25 @@ package uk.co.homletmoo.ld28.world
 		public var tint:Image;
 		public var sun:Image, moon:Image;
 		
+		public var failed:Boolean = false;
+		
+		public var score:int = 0;
+		public var scoreText:Text;
+		public var coinImg:Image;
+		public var weedRate:Number = 0.01;
+		
 		
 		override public function begin():void
 		{
+			Sound.START.play( 0.5 );
+			Sound.INTRO.play();
+			
 			addGraphic( createSky(), 100 );
 			addGraphic( createSun(), 80 );
 			addGraphic( createMoon(), 80 );
-			addGraphic( createSheen(), -100 );
+			addGraphic( createSheen(), -10 );
 			addGraphic( createFloatingDirt(), 80 );
+			addGraphic( createScore(), -200 );
 			
 			width = depth = 9;
 			edge = 5;
@@ -60,6 +73,25 @@ package uk.co.homletmoo.ld28.world
 			tint = Image.createRect( Display.W, Display.H, 0x000030, 0 );
 			tint.blend = BlendMode.MULTIPLY;
 			addGraphic( tint, -20 );
+		}
+		
+		private function createScore():Graphiclist
+		{
+			scoreText = new Text( "= " + score, Display.W - 36 * Display.SCALE, 2 * Display.SCALE );
+			scoreText.size = 8;
+			scoreText.scale = Display.SCALE;
+			
+			coinImg = new Image( Assets.COIN );
+			coinImg.scale = Display.SCALE;
+			coinImg.x = Display.W - 39 * Display.SCALE - coinImg.scaledWidth;
+			coinImg.y = 2 * Display.SCALE;
+			
+			return new Graphiclist( scoreText, coinImg );
+		}
+		
+		private function updateScore():void
+		{
+			scoreText.text = "= " + score;
 		}
 		
 		private function createSky():Image
@@ -146,27 +178,61 @@ package uk.co.homletmoo.ld28.world
 			dirt.y = Display.H  - 105 * Display.SCALE + offset;
 		}
 		
+		private function fail():void
+		{
+			Sound.END.play( 0.5 );
+			
+			failed = true;
+			tint.color = 0;
+			player.inv.frame.visible = false;
+			player.inv.slider.visible = false;
+			coinImg.visible = false;
+			scoreText.visible = false;
+			FP.tween( tint, { alpha: 1 }, 1.0, { complete: nextScreen } );
+		}
+		
+		private function nextScreen():void
+		{
+			FP.world = new EndWorld( score );
+		}
+		
 		override public function update():void
 		{
-			var picked:Point = IsoMap.pick( Input.mouseX, Input.mouseY );
-			positionSheen( picked );
+			var seeds:Array = new Array();
+			getClass( Seed, seeds );
+			if ( seeds.length == 0 && !crop.findCrop() && !failed )
+				fail();
 			
-			if ( Input.mouseReleased )
-				player.move( picked );
-			
-			var offset:Number = 8.0 * Math.sin( time );
-			positionFloatingDirt( dirt_0, offset * 3 );
-			positionFloatingDirt( dirt_1, offset * 2 );
-			positionFloatingDirt( dirt_2, offset );
-			player.y = player.flatPos.y + offset;
-			IsoMap.offset_y = IsoMap.BASE_OFFSET_Y + offset;
-			
-			tint.alpha = 0.25 - Math.cos( time ) * 0.4;
-			sun.angle  = time * FP.DEG;
-			moon.angle = time * FP.DEG;
-			time += FP.elapsed;
+			if ( !failed )
+			{
+				var picked:Point = IsoMap.pick( Input.mouseX, Input.mouseY );
+				positionSheen( picked );
+				
+				if ( weedRate < 0.1 )
+					weedRate += FP.elapsed * 0.00001;
+				
+				if ( Input.mouseReleased
+				  && picked.x >= 0     && picked.y >= 0
+				  && picked.x <  width && picked.y <  depth
+				  && Math.abs( picked.x - picked.y ) <= edge )
+					player.move( picked );
+				
+				var offset:Number = 8.0 * Math.sin( time );
+				positionFloatingDirt( dirt_0, offset * 3 );
+				positionFloatingDirt( dirt_1, offset * 2 );
+				positionFloatingDirt( dirt_2, offset );
+				player.y = player.flatPos.y + offset;
+				IsoMap.offset_y = IsoMap.BASE_OFFSET_Y + offset;
+				
+				tint.alpha = 0.25 - Math.cos( time ) * 0.4;
+				sun.angle  = time * FP.DEG;
+				moon.angle = time * FP.DEG;
+				time += FP.elapsed;
+			}
 			
 			super.update();
+			
+			updateScore();
 		}
 	}
 }

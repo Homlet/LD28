@@ -3,6 +3,7 @@ package uk.co.homletmoo.ld28
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.geom.Matrix;
+	import flash.utils.Dictionary;
 	import net.flashpunk.FP;
 	
 	/**
@@ -11,8 +12,15 @@ package uk.co.homletmoo.ld28
 	 */
 	public class Assets 
 	{
+		public static var cache:Dictionary;
 		public static function scaleGraphic( img:*, sf:uint ):BitmapData
 		{
+			if ( cache == null )
+				cache = new Dictionary();
+			
+			if ( cache[img] != null )
+				return cache[img];
+			
 			var bit:BitmapData = FP.getBitmap( img );
 			
 			var width:int  = ( bit.width * sf  ) || 1;
@@ -22,6 +30,8 @@ package uk.co.homletmoo.ld28
 			var matrix:Matrix = new Matrix();
 			matrix.scale( sf, sf );
 			result.draw( bit, matrix );
+			
+			cache[img] = result;
 			
 			return result;
 		}
@@ -60,6 +70,34 @@ package uk.co.homletmoo.ld28
 		public static const MOON_RAW:Class;
 		public static const MOON:BitmapData = FP.getBitmap( MOON_RAW );
 		
+		[Embed (source = "res/seeds.png")]
+		public static const SEEDS_RAW:Class;
+		public static const SEEDS:BitmapData = FP.getBitmap( SEEDS_RAW );
+		
+		[Embed (source = "res/player.png")]
+		public static const PLAYER_RAW:Class;
+		public static const PLAYER:BitmapData = FP.getBitmap( PLAYER_RAW );
+		
+		[Embed (source = "res/inv_frame.png")]
+		public static const INV_FRAME_RAW:Class;
+		public static const INV_FRAME:BitmapData = FP.getBitmap( INV_FRAME_RAW );
+		
+		[Embed (source = "res/inv_slider.png")]
+		public static const INV_SLIDER_RAW:Class;
+		public static const INV_SLIDER:BitmapData = FP.getBitmap( INV_SLIDER_RAW );
+		
+		[Embed (source = "res/coin.png")]
+		public static const COIN_RAW:Class;
+		public static const COIN:BitmapData = FP.getBitmap( COIN_RAW );
+		
+		[Embed (source = "res/title.png")]
+		public static const TITLE_RAW:Class;
+		public static const TITLE:BitmapData = FP.getBitmap( TITLE_RAW );
+		
+		[Embed (source = "res/end.png")]
+		public static const END_RAW:Class;
+		public static const END:BitmapData = FP.getBitmap( END_RAW );
+		
 		
 		// Tiles
 		[Embed (source = "res/tile_grid.png")]
@@ -74,6 +112,10 @@ package uk.co.homletmoo.ld28
 		public static const TILE_DIRT_RAW:Class;
 		public static const TILE_DIRT:BitmapData = FP.getBitmap( TILE_DIRT_RAW );
 		
+		[Embed (source = "res/tile_seeded_dirt.png")]
+		public static const TILE_SEEDED_DIRT_RAW:Class;
+		public static const TILE_SEEDED_DIRT:BitmapData = FP.getBitmap( TILE_SEEDED_DIRT_RAW );
+		
 		[Embed (source = "res/tile_tilled_l.png")]
 		public static const TILE_TILLED_L_RAW:Class;
 		public static const TILE_TILLED_L:BitmapData = FP.getBitmap( TILE_TILLED_L_RAW );
@@ -82,8 +124,12 @@ package uk.co.homletmoo.ld28
 		public static const TILE_TILLED_R_RAW:Class;
 		public static const TILE_TILLED_R:BitmapData = FP.getBitmap( TILE_TILLED_R_RAW );
 		
-		[Embed (source = "res/tile_wheat.png")]
-		public static const TILE_WHEAT_RAW:Class;
-		public static const TILE_WHEAT:BitmapData = FP.getBitmap( TILE_WHEAT_RAW );
+		[Embed (source = "res/tile_crop.png")]
+		public static const TILE_CROP_RAW:Class;
+		public static const TILE_CROP:BitmapData = FP.getBitmap( TILE_CROP_RAW );
+		
+		[Embed (source = "res/tile_weed.png")]
+		public static const TILE_WEED_RAW:Class;
+		public static const TILE_WEED:BitmapData = FP.getBitmap( TILE_WEED_RAW );
 	}
 }

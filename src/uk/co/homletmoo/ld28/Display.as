@@ -13,7 +13,7 @@ package uk.co.homletmoo.ld28
 		
 		public static const SCALE:uint = 4;
 		
-		public static const FRAME_RATE:Number = 60.0;
+		public static const FRAME_RATE:Number = 30.0;
 		public static const USE_FIXED_TIME:Boolean = false;
 	}
 }

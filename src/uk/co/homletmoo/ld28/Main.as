@@ -3,6 +3,8 @@ package uk.co.homletmoo.ld28
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
+	import flash.display.StageQuality;
+	import flash.utils.getTimer;
 	import net.flashpunk.Engine;
 	import net.flashpunk.FP;
 	import net.flashpunk.Tweener;
@@ -37,11 +39,13 @@ package uk.co.homletmoo.ld28
 				Display.USE_FIXED_TIME
 			);
 			
+			stage.quality = StageQuality.LOW;
+			
 			quake = new Quake();
 			
 			FP.screen.color = 0xFF000000
 			
-			pauseFader = new Bitmap( new BitmapData( Display.HW, Display.HH, true, 0x88000000 ) );
+			pauseFader = new Bitmap( new BitmapData( Display.W, Display.H, true, 0x88000000 ) );
 			addChild( pauseFader );
 			
 			if ( CONFIG::debug )
@@ -56,11 +60,17 @@ package uk.co.homletmoo.ld28
 			Sound.initialize();
 			Inputs.register();
 			
-			FP.world = new LevelWorld(); // TODO: splash.
+			FP.world = new SplashWorld();
 		}
 		
 		override public function update():void
 		{
+			if ( FP.elapsed < 1.0 / Display.FRAME_RATE )
+			{
+				var start:int = getTimer();
+				while ( getTimer() - start >= 1.0 / Display.FRAME_RATE * 1000 ) {}
+			}
+			
 			quake.update();
 			
 			if ( !( FP.world is LevelWorld ) )
@@ -121,10 +131,10 @@ package uk.co.homletmoo.ld28
 		
 		public static function stopMusic():void
 		{
-			introComplete = Sound.INTRO.playing;
+			introComplete = Sound.LOOP.playing;
 			introComplete ?
-				Sound.INTRO.stop() :
-				Sound.LOOP.stop();
+				Sound.LOOP.stop() :
+				Sound.INTRO.stop();
 		}
 		
 		public static function resumeMusic():void

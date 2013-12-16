@@ -57,7 +57,7 @@ package uk.co.homletmoo.ld28.world
 		
 		private function nextWorld():void
 		{
-			FP.world = new LevelWorld();
+			FP.world = new TitleWorld();
 		}
 	}
 }

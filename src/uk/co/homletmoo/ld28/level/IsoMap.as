@@ -10,7 +10,10 @@ package uk.co.homletmoo.ld28.level
 	import net.flashpunk.graphics.Spritemap;
 	import uk.co.homletmoo.ld28.Assets;
 	import uk.co.homletmoo.ld28.Display;
+	import uk.co.homletmoo.ld28.Main;
 	import uk.co.homletmoo.ld28.player.Seed;
+	import uk.co.homletmoo.ld28.Sound;
+	import uk.co.homletmoo.ld28.world.LevelWorld;
 	
 	/**
 	 * ...
@@ -50,12 +53,14 @@ package uk.co.homletmoo.ld28.level
 		public static var offset_x:int = BASE_OFFSET_X;
 		public static var offset_y:int = BASE_OFFSET_Y;
 		
-		public static var empty:Tile = new Tile( 0, 0, 0, null, Tile.NONE );
+		public static var empty:Tile = new Tile( 0, 0, 0, Tile.NONE );
 		
 		public var data:Vector.<Vector.<Tile> >;
 		public var data_width:int, data_depth:int, data_type:int;
 		public var altitude:int;
 		public var updating:Point;
+		
+		public var cropCount:int = 0;
 		
 		
 		public function IsoMap( width:int, depth:int, edge:int = 0, type:int = TERRAIN ) 
@@ -86,18 +91,31 @@ package uk.co.homletmoo.ld28.level
 					switch ( type )
 					{
 					case GRID:
-						data[i][j] = new Tile( i, j, altitude, this, Tile.GRID );
+						data[i][j] = new Tile( i, j, altitude, Tile.GRID );
 						break;
 						
 					case TERRAIN:
-						if ( Math.random() < 0.7 )
-							data[i][j] = new Tile( i, j, altitude, this, Tile.GRASS );
+						if ( i == 4 && j == 4 )
+						{
+							var t:int = ( i + j ) % 2 == 0 ? Tile.TILLED_L : Tile.TILLED_R;
+							data[i][j] = new Tile( i, j, altitude, t );
+						}
+						else if ( Math.abs( i - j ) < 2 )
+							data[i][j] = new Tile( i, j, altitude, Tile.DIRT );
+						else if ( Math.random() < 0.2 )
+							data[i][j] = new Tile( i, j, altitude, Tile.DIRT );
 						else
-							data[i][j] = new Tile( i, j, altitude, this, Tile.DIRT );
+							data[i][j] = new Tile( i, j, altitude, Tile.GRASS );
 						break;
 						
 					case CROP:
-						data[i][j] = new Tile( i, j, altitude, this, Tile.NONE );
+						if ( i == 4 && j == 4 )
+						{
+							cropCount = 1;
+							data[i][j] = new Tile( i, j, altitude, Tile.WHEAT );
+						}
+						else
+							data[i][j] = new Tile( i, j, altitude, Tile.NONE );
 					}
 				}
 			}
@@ -139,10 +157,12 @@ package uk.co.homletmoo.ld28.level
 			if ( data_type != TERRAIN )
 				return;
 			
-			if ( at( x, y ).type == Tile.DIRT )
+			if ( at( x, y ).type == Tile.DIRT
+			  || at( x, y ).type == Tile.SEEDED_DIRT )
 			{
+				Sound.DIG.play( 0.5 );
 				var type:int = ( x + y ) % 2 == 0 ? Tile.TILLED_L : Tile.TILLED_R;
-				data[x][y] = new Tile( x, y, altitude, this, type );
+				data[x][y] = new Tile( x, y, altitude, type );
 			}
 			
 			fill();
@@ -154,7 +174,10 @@ package uk.co.homletmoo.ld28.level
 				return;
 			
 			if ( at( x, y ).type == Tile.GRASS )
-				data[x][y] = new Tile( x, y, altitude, this, Tile.DIRT );
+			{
+				Sound.DIG.play( 0.5 );
+				data[x][y] = new Tile( x, y, altitude, Tile.DIRT );
+			}
 			
 			fill();
 		}
@@ -168,9 +191,131 @@ package uk.co.homletmoo.ld28.level
 			if ( at( x, y ).type != Tile.NONE )
 				return;
 			
-			data[x][y] = new Tile( x, y, altitude, this, seed.plantOn( ground.at( x, y ) ) );
+			var t:int = seed.plantOn( ground.at( x, y ) );
+			if ( t != Tile.NONE )
+			{
+				Sound.DIG.play( 0.5 );
+				cropCount++;
+			}
+			
+			data[x][y] = new Tile( x, y, altitude, t );
 			
 			fill();
+		}
+		
+		public function weed( x:int, y:int, ground:IsoMap, destructive:Boolean = false ):void
+		{
+			if ( data_type != CROP
+			  || ground.data_type != TERRAIN )
+				return
+			
+			if ( at( x, y ).type != Tile.NONE )
+				if ( destructive )
+					cropCount--;
+				else
+					return;
+			
+			
+			data[x][y] = new Tile( x, y, altitude, Tile.WEED );				
+			fill();
+		}
+		
+		public function deweed( x:int, y:int ):void
+		{
+			if ( data_type != CROP )
+				return
+			
+			if ( at( x, y ).type != Tile.WEED )
+				return;
+			
+			var frame:int = (data[x][y].img as Spritemap).frame;
+			if ( frame == 5 )
+			{
+				if ( Math.random() < 0.4 )
+				{
+					Sound.DESTROY.play( 0.6 );
+					Main.quake.start( 0.2, 0.1 );
+					data[x][y] = new Tile( x, y, altitude, Tile.NONE );
+				} else
+				{
+					Sound.HIT.play( 0.6 );
+					Main.quake.start( 0.1, 0.1 );
+					return;
+				}
+			} else
+			{
+				var frameNew:int = frame - 1;
+				if ( frameNew >= 0 )
+				{
+					Sound.HIT.play( 0.6 );
+					Main.quake.start( 0.1, 0.1 );
+					(data[x][y].img as Spritemap).play( "grow", true, frameNew );
+				} else
+				{
+					Sound.DESTROY.play( 0.6 );
+					Main.quake.start( 0.2, 0.1 );
+					data[x][y] = new Tile( x, y, altitude, Tile.NONE );
+				}
+			}
+			
+			fill();
+		}
+		
+		public function harvest( x:int, y:int, ground:IsoMap ):void
+		{
+			if ( data_type != CROP
+			  || at( x, y ).type == Tile.NONE )
+				return
+			
+			if ( Math.floor( (at( x, y ).img as Spritemap).frame % 5 ) >= 4 )
+			{
+				Main.quake.start( 0.2, 0.1 );
+				Sound.HARVEST.play( 0.6 );
+				Sound.DESTROY.play( 0.6 );
+				cropCount--;
+				
+				var type:int = at( x, y ).type;
+				(FP.world as LevelWorld).score += ( type + 1 - Tile.WHEAT ) * 10;
+				
+				data[x][y] = new Tile( x, y, 1, Tile.NONE );
+				ground.data[x][y] = new Tile( x, y, 0, Tile.DIRT );
+				
+				var p:Point;
+				switch ( type )
+				{
+				case Tile.WHEAT:
+					p = project( x, y );
+					new Seed( p.x, p.y, Seed.WHEAT, false );
+					
+					if ( Math.random() > 0.5 )
+						new Seed( p.x + 10, p.y, Seed.random(), false );
+					break;
+				
+				case Tile.RASPBERRY:
+					if ( Math.random() > 0.5 )
+					{
+						p = project( x, y );
+						new Seed( p.x, p.y, Seed.WHEAT, false );
+					}
+					break;
+				
+				case Tile.CARROT:
+					if ( Math.random() > 0.3 )
+					{
+						p = project( x, y );
+						new Seed( p.x, p.y, Seed.WHEAT, false );
+					}
+					break;
+				}
+				
+				fill();
+				ground.fill();
+			}
+		}
+		
+		public function findCrop():Boolean
+		{
+			return cropCount > 0;
 		}
 		
 		override public function update():void
@@ -198,8 +343,7 @@ package uk.co.homletmoo.ld28.level
 				}
 				
 				if ( data[i] != null
-				  && data[i][j] != null
-				  && data[i][j].type != Tile.NONE )
+				  && data[i][j] != null )
 				{
 					data[i][j].update();
 				}
